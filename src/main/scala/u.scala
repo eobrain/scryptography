@@ -25,10 +25,24 @@ case class U(n:Int, bigInt: BigInt) {
     new U(n, this.bigInt ^ that.bigInt)
   }
 
-  //Conver to ascii, replacing control characters with °, and any leading padding with »
+  /** Convert to ascii, replacing control characters with '°', and any leading padding with '»' */
   def text = {
     val s = new String(bigInt.toByteArray) map {(c:Char)=> if (c.isControl) '°' else c}
     "»"*(n/8 - s.length) + s
+  }
+
+  /** Convert to bytes always of size n/8 (unlike BigInt)  */
+  def bytes = {
+    val fromBigInt = bigInt.toByteArray 
+    val len = fromBigInt.length
+    assert( len <= n/8 )
+    if( len == n/8 )
+      fromBigInt
+    else{
+      val result = new Array[Byte](n/8)
+      Array.copy( fromBigInt, 0, result, n/8 - len, len )
+      result
+    }
   }
  
 }

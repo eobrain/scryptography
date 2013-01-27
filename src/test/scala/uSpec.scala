@@ -32,23 +32,12 @@ class USpec extends FlatSpec with ShouldMatchers {
 
   it should "be created from a hex string" in {
     val x = U("6a6a6a")
-    x.text should equal ("jjj")   // 6a is hex of character 'i'
+    x.text should equal ("jjj")   // 6a is hex of character 'j'
     x.n should equal (3*8)
 
   }
 
-  it should "support XOR" in {
-    val blanks = U("           ".getBytes)
-    val x      = U("hello WORLD".getBytes)
-    val xor = blanks ^ x
-
-    // XORing with blank toggles case 
-    xor should equal (U("HELLO\000world".getBytes))
-
-  }
-
-
-  it should "allow for very big values" in {
+  it should "be created from a very big value" in {
     val N = 8*1000*1000 // one million bytes
     val bytes = new Array[Byte](N/8)
     
@@ -60,8 +49,17 @@ class USpec extends FlatSpec with ShouldMatchers {
 
   }
 
+  it should "XOR with another U value" in {
+    val blanks = U("           ".getBytes)
+    val x      = U("hello WORLD".getBytes)
+    val xor = blanks ^ x
 
-  it should "convert text to the correct length" in {
+    // XORing with blank toggles case 
+    xor should equal (U("HELLO\000world".getBytes))
+
+  }
+
+  "text property" should "be correct length" in {
     val N = 80
     val bytes = new Array[Byte](N/8)
     
@@ -73,6 +71,45 @@ class USpec extends FlatSpec with ShouldMatchers {
       x.text.length should equal(N/8)
       
     }
+  }
+
+  it should "be correctly padded at the beginning" in {
+
+    val x = U("\000\000jjj".getBytes)
+    x.n should equal (8*5)
+    x.text should equal("»»jjj")
+
+  }
+
+  it should "display control characters as '°'" in {
+
+    val x = U("jj\007j".getBytes)
+    x.n should equal (8*4)
+    x.text should equal("jj°j")
+
+  }
+
+  "byte property" should "be correct length" in {
+    val N = 80
+    val bytes = new Array[Byte](N/8)
+    
+    for (_ <- 0 until 100) yield {
+      rnd nextBytes bytes
+
+      val x = U(bytes)
+      x.n            should equal(N) 
+      x.bytes.length should equal(N/8)
+      
+    }
+  }
+
+  it should "be correctly padded at the beginning" in {
+
+    val x = U("00006a6a6a")
+    x.n should equal (8*5)
+    x.text should equal("»»jjj")
+    x.bytes should equal("\000\000jjj".getBytes)
+
   }
 
 }
