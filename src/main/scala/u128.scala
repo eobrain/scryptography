@@ -16,7 +16,7 @@ import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
 
 /** A 128-bit block */
-class U128(bigInt: BigInt) extends U(128, bigInt) {
+class U128(bytes: Array[Byte]) extends U(bytes) {
 
   /** encrypt using single-block AES */
   def e(k:U128) = aes(Cipher.ENCRYPT_MODE, k)
@@ -40,17 +40,17 @@ object U128{
 
   //from a hex-encoded string of length 32
   def apply(hex: String) = {
-    require( hex.length == 128/4 )
-    new U128(BigInt(hex,16))
+    require( hex.length == 128/4, "hex string must have "+(128/4)+" chars" )
+    new U128(U.hex2bytes(hex))
   }
 
   //from an array of 16 bytes
   def apply(bytes: Array[Byte]) = {
-    require( bytes.length == 128/8 )
-    new U128(BigInt(1,bytes))
+    require( bytes.length == 128/8, "must be "+(128/8)+" bytes" )
+    new U128(bytes)
   }
 
-  def apply(u:U) = new U128(u.bigInt)
+  def apply(u:U) = new U128(u.bytes)
 
   //Create from a string, converted to bytes using ASCII encoding
   def ascii(ascii: String) = apply(ascii getBytes "ASCII")

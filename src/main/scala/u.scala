@@ -19,19 +19,36 @@ import U._
 this constructor directly it is more convenient to use the 
 functions in the object U("af30065d") or U.ascii("hello") */
 
-case class U(n:Int, bigInt: BigInt) {
-//case class U(bytes: Array[Byte]) {
+//case class U(n:Int, bigInt: BigInt) {
+case class U(bytes: Array[Byte]) {
 
   //val bigInt = BigInt(1, bytes)
 
-  //val n = 8 * bytes.length
+  val n = 8 * bytes.length
 
-  require( bigInt >= 0 )
+  override def equals(other:Any):Boolean = other match {
+    case that: U => {
+      if( that.n != this.n )
+	false
+      else {
+	for( i <- 0 until n/8 )
+	  if( this.bytes(i) != that.bytes(i) )
+	    return false
+	true
+      }
+    }
+    case _ => false
+  }
+
+  //require( bigInt >= 0 )
 
   /** XOR */
   def ^(that:U) = {
-    require( this.n == that.n )
-    new U(n, this.bigInt ^ that.bigInt)
+    require( this.n == that.n, "can only XOR values of same length" )
+    val bs = new Array[Byte](n/8)
+    for( i <- 0 until n/8 )
+      bs(i) = (this.bytes(i) ^ that.bytes(i)).asInstanceOf[Byte]
+    new U(bs)
   }
 
   /* * Concatenate, but pads each component to even number of bytes  */
@@ -53,8 +70,8 @@ case class U(n:Int, bigInt: BigInt) {
     "»"*(n/8 - s.length) + s
   }
 
-  /** Convert to bytes always of size n/8 (unlike BigInt)  */
-  def bytes = {
+  /* * Convert to bytes always of size n/8 (unlike BigInt)  */
+  /*def bytes = {
     val fromBigInt = bigInt.toByteArray 
     val len = fromBigInt.length
     if( len == n/8 )
@@ -68,42 +85,45 @@ case class U(n:Int, bigInt: BigInt) {
 	Array.copy( fromBigInt, 0, result, n/8 - len, len )
       result
     }
-  }
+  }*/
 
-  def hex = {
-    (bytes map { (byte:Byte) =>
-      val i:Int = byte.asInstanceOf[Int]
-      "%x".format(i)
-    }).mkString
-  }
 
   def blocks(bitsPerBlock:Int):Seq[U] = {
     val bs = bytes
     val bytesPerBlock = bitsPerBlock/8; 
-    val buf = new Array[Byte](bytesPerBlock)
     val n = bs.length/bytesPerBlock
     (0 until n) map { (i:Int) =>
+      val buf = new Array[Byte](bytesPerBlock)
       Array.copy( bs, i * bytesPerBlock, buf, 0, bytesPerBlock )
-      U(buf)		     
+      new U(buf)		     
     }
   }
 
   /** Return as hex string */
-  override def toString = bigInt toString 16
+  override def toString = (bytes map { "%02x" format _ }).mkString
 }
 
 
 
 object U{
 
-  //create from hex-encoded string
-  def apply(hex: String) = new U(4*hex.length, BigInt(hex,16))
+  def hex2bytes(hex: String) = {
+    require( hex.length % 2 == 0, "hex must have even number of chars" )
+    val length = hex.length/2
+    val bytes = new Array[Byte](length)
+    for( i <- 0 until length ){
+      val byteHex = hex.substring( 2*i, 2*(i+1 ))
+      assert( byteHex.length==2, "length should be 2 for i="+i+" in "+hex)
+      bytes(i) = Integer.parseInt( byteHex, 16 ).asInstanceOf[Byte]
+    }
+    bytes
+  }
 
-  //create from an array of 16 bytes
-  def apply(bytes: Array[Byte]) = new U(8*bytes.length, BigInt(1, bytes))
+  //create from hex-encoded string
+  def apply(hex: String) = new U(hex2bytes(hex))
 
   //Create from a string, converted to bytes using ASCII encoding
-  def ascii(ascii: String) = apply(ascii getBytes "ASCII")
+  def ascii(ascii: String) = new U(ascii getBytes "ASCII")
 
   //By concatenating a sequence of Us, padding each up to next byte
   def apply(uSeq: Seq[U]):U = {
@@ -118,14 +138,14 @@ object U{
       Array.copy( bytes, 0, buf, insert, n )
       insert += n
     }
-    U(buf)
+    new U(buf)
   }
 
   //create random
   def random(n:Int) = {
     val result = new Array[Byte](n)
     gen nextBytes result
-    U(result)
+    new U(result)
   }
 
   val gen = new SecureRandom
