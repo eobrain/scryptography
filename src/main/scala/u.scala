@@ -61,13 +61,14 @@ case class U(bytes: Array[Byte]) {
     U(buf)
   }*/
 
-  /** Convert to ascii, replacing control characters with '°', and any
-     leading padding with '»' */
-  def text = {
+  /** Convert to ascii, replacing control characters with '°' */
+  def ascii = {
     val s = new String(bytes,"ASCII") map {
       (c:Char)=> if (c.isControl) '°' else c
     }
-    "»"*(n/8 - s.length) + s
+    assert( s.length == n/8 )
+    s
+    //"»"*(n/8 - s.length) + s
   }
 
   /* * Convert to bytes always of size n/8 (unlike BigInt)  */

@@ -25,14 +25,14 @@ class USpec extends FlatSpec with ShouldMatchers {
   "A U value" should "be created from a byte array" in {
 
     val x = U.ascii( "iiii" )
-    x.text should equal ("iiii")
+    x.ascii should equal ("iiii")
     x.n should equal (4*8)
 
   }
 
   it should "be created from a hex string" in {
     val x = U("6a6a6a")
-    x.text should equal ("jjj")   // 6a is hex of character 'j'
+    x.ascii should equal ("jjj")   // 6a is hex of character 'j'
     x.n should equal (3*8)
     x.toString should equal ("6a6a6a")
   }
@@ -45,7 +45,7 @@ class USpec extends FlatSpec with ShouldMatchers {
       
     val x = U(bytes)
     x.n           should equal(N) 
-    x.text.length should equal(N/8)
+    x.ascii.length should equal(N/8)
     x.toString.length should equal (N/4)
 
   }
@@ -75,7 +75,7 @@ class USpec extends FlatSpec with ShouldMatchers {
     U(seq) should equal( U("0A0B0C0E0F101112131415") )
   }
 
-  "text property" should "be correct length" in {
+  "ascii property" should "be correct length" in {
     val N = 80
     val bytes = new Array[Byte](N/8)
     
@@ -84,7 +84,7 @@ class USpec extends FlatSpec with ShouldMatchers {
 
       val x = U(bytes)
       x.n           should equal(N) 
-      x.text.length should equal(N/8)
+      x.ascii.length should equal(N/8)
       
     }
   }
@@ -93,35 +93,27 @@ class USpec extends FlatSpec with ShouldMatchers {
 
     val x = U.ascii("\000\000jjj")
     x.n should equal (8*5)
-    x.text should equal("°°jjj")
+    x.ascii should equal("°°jjj")
     x.toString should equal ("00006a6a6a")
 
   }
-/*
+
   it should "be correctly padded at the beginning" in {
 
     val x = U.ascii("\000jjj")
-    x.text should equal("»jjj")
-    x.n should equal (8*5)
+    x.ascii should equal("°jjj")
+    x.n should equal (8*4)
 
   }
-  */ 
-/*
-  it should "be correctly zerod at the beginning" in {
 
-    val x = U.ascii("\000\000jjj")
-    x.n should equal (8*5)
-    x.text should equal("°°jjj")
 
-  }
-*/
-  /*it should "display control characters as '°'" in {
+  it should "display control characters as '°'" in {
 
     val x = U.ascii("jj\007j")
     x.n should equal (8*4)
-    x.text should equal("jj°j")
+    x.ascii should equal("jj°j")
 
-  }*/
+  }
 
   it should "handle byte with sign bit set " in {
     val x = U("f0")
@@ -160,14 +152,14 @@ class USpec extends FlatSpec with ShouldMatchers {
     }
   }
 
-  /*it should "be correctly padded at the beginning" in {
+  it should "be correctly padded at the beginning" in {
 
     val x = U("00006a6a6a")
     x.n should equal (8*5)
-    x.text should equal("»»jjj")
+    x.ascii should equal("°°jjj")
     x.bytes should equal("\000\000jjj" getBytes "ASCII")
 
-  }*/
+  }
 
   it should "handle byte with sign bit set " in {
     val x = U("f0")
