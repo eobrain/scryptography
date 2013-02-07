@@ -20,6 +20,10 @@ scalaVersion := "2.9.1"
 
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "1.9.1" % "test",
+  "org.specs2"    %% "specs2"    % "1.8.2"  % "test",
   "com.github.scala-incubator.io" %% "scala-io-core" % "0.2.0",
   "com.github.scala-incubator.io" %% "scala-io-file" % "0.2.0"
 )
+
+	 resolvers ++= Seq("snapshots" at "http://oss.sonatype.org/content/repositories/snapshots",
+                        "releases"  at "http://oss.sonatype.org/content/repositories/releases")

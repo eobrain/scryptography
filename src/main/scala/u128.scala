@@ -50,6 +50,8 @@ object U128{
     new U128(BigInt(1,bytes))
   }
 
+  def apply(u:U) = new U128(u.bigInt)
+
   //Create from a string, converted to bytes using ASCII encoding
   def ascii(ascii: String) = apply(ascii getBytes "ASCII")
 
