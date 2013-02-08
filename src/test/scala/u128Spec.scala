@@ -12,12 +12,10 @@
  */
 
 import org.eamonn.crypto.U128
-
-import org.scalatest.FlatSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.specs2.mutable.Specification
 
 /** Test the U128 class */
-class U128Spec extends FlatSpec with ShouldMatchers {
+class U128Spec extends Specification {
 
   /* See
    http://www.inconteam.com/software-development/41-encryption/55-aes-test-vectors#aes-ecb
@@ -32,44 +30,47 @@ class U128Spec extends FlatSpec with ShouldMatchers {
 
   val vecKey = U128("2b7e151628aed2a6abf7158809cf4f3c")
 
-  "aes encruption" should "encrypt test vector 0" in {
-    (U128(vectors(0)._1) e vecKey) should equal(U128(vectors(0)._2) )
+  "aes encruption" should {
+    "encrypt test vector 0" in {
+      (U128(vectors(0)._1) e vecKey) === (U128(vectors(0)._2) )
+    }
+    "encrypt test vector 1" in {
+      (U128(vectors(1)._1) e vecKey) === (U128(vectors(1)._2) )
+    }
+    "encrypt test vector 2" in {
+      (U128(vectors(2)._1) e vecKey) === (U128(vectors(2)._2) )
+    }
+    "encrypt test vector 3" in {
+      (U128(vectors(3)._1) e vecKey) === (U128(vectors(3)._2) )
+    }
+    "decrypt test vector 0" in {
+      (U128(vectors(0)._2) d vecKey) === (U128(vectors(0)._1) )
+    }
+    "decrypt test vector 1" in {
+      (U128(vectors(1)._2) d vecKey) === (U128(vectors(1)._1) )
+    }
+    "decrypt test vector 2" in {
+      (U128(vectors(2)._2) d vecKey) === (U128(vectors(2)._1) )
+    }
+    "decrypt test vector 3" in {
+      (U128(vectors(3)._2) d vecKey) === (U128(vectors(3)._1) )
+    }
   }
-  it should "encrypt test vector 1" in {
-    (U128(vectors(1)._1) e vecKey) should equal(U128(vectors(1)._2) )
-  }
-  it should "encrypt test vector 2" in {
-    (U128(vectors(2)._1) e vecKey) should equal(U128(vectors(2)._2) )
-  }
-  it should "encrypt test vector 3" in {
-    (U128(vectors(3)._1) e vecKey) should equal(U128(vectors(3)._2) )
-  }
-  it should "decrypt test vector 0" in {
-    (U128(vectors(0)._2) d vecKey) should equal(U128(vectors(0)._1) )
-  }
-  it should "decrypt test vector 1" in {
-    (U128(vectors(1)._2) d vecKey) should equal(U128(vectors(1)._1) )
-  }
-  it should "decrypt test vector 2" in {
-    (U128(vectors(2)._2) d vecKey) should equal(U128(vectors(2)._1) )
-  }
-  it should "decrypt test vector 3" in {
-    (U128(vectors(3)._2) d vecKey) should equal(U128(vectors(3)._1) )
-  }
+  
+  "U128 value" should {
+    "encrypt to a 128 bit block" in {
+      val k = U128.random
+      val m  = U128.ascii("Hello World!____")
+      val c = m e k
+      c.bytes.length === (16)
+    }
     
-
-  "U128 value" should "encrypt to a 128 bit block" in {
-    val k = U128.random
-    val m  = U128.ascii("Hello World!____")
-    val c = m e k
-    c.bytes.length should equal(16)
-  }
-
-  it should "be same as encrypt followed by decrypt" in {
-    val k = U128.random
-    val m  = U128.ascii("Hello World!____")
-    val c = m e k
-    new String((c d k).bytes) should equal("Hello World!____")
+    "be same as encrypt followed by decrypt" in {
+      val k = U128.random
+      val m  = U128.ascii("Hello World!____")
+      val c = m e k
+      new String((c d k).bytes) === ("Hello World!____")
+    }
   }
 
 }
