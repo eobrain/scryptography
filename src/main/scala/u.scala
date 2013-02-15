@@ -19,7 +19,6 @@ import U._
 this constructor directly it is more convenient to use the 
 functions in the object U("af30065d") or U.ascii("hello") */
 
-//case class U(n:Int, bigInt: BigInt) {
 case class U(bytes: Array[Byte]) {
 
   //val bigInt = BigInt(1, bytes)
@@ -42,24 +41,60 @@ case class U(bytes: Array[Byte]) {
 
   //require( bigInt >= 0 )
 
-  /** XOR */
+  /** XOR, truncating to shorter length if lengths are different */
   def ^(that:U) = {
-    require( this.n == that.n, "can only XOR values of same length" )
-    val bs = new Array[Byte](n/8)
-    for( i <- 0 until n/8 )
+    var length = ( this.n min that.n )/8
+    val bs = new Array[Byte](length)
+    for( i <- 0 until length )
       bs(i) = (this.bytes(i) ^ that.bytes(i)).asInstanceOf[Byte]
     new U(bs)
   }
 
-  /* * Concatenate, but pads each component to even number of bytes  */
-  /*def ++ (that:U) = {
-    val thisB = this.bytes
-    val thatB = that.bytes
-    val buf = new Array[Byte](thisB.length + thatB.length)
-    Array.copy( thisB, 0, buf, 0,            thisB.length )
-    Array.copy( thatB, 0, buf, thisB.length, thatB.length )
+  /** addition */
+  def +(that:Long) = {
+    val bs = (BigInt(bytes) + BigInt(that)).toByteArray
+    val length = bs.length
+    if( length == n/8 )
+      new U(bs)
+    else{
+      val good = new Array[Byte](n/8)
+      if (length < good.length)
+	//leading zeros
+	Array.copy(bs,0                 , good, good.length -length, length)
+      else
+	//overflow
+	Array.copy(bs,length-good.length, good, 0                  , length)
+      new U(good)
+    }
+  }
+
+  /** Concatenate  */
+  def ++ (that:U) = {
+    val buf = new Array[Byte](this.bytes.length + that.bytes.length)
+    Array.copy( this.bytes, 0, buf, 0,                 this.bytes.length )
+    Array.copy( that.bytes, 0, buf, this.bytes.length, that.bytes.length )
     U(buf)
-  }*/
+  }
+
+  /** Partition into two at given bit position */
+  def partitionAt(i:Int) = {
+    require( i>=0 && i<n && i % 8 == 0)
+    val a = new Array[Byte](i/8)
+    val b = new Array[Byte]((n-i)/8)
+    Array.copy(bytes, 0,        a, 0, a.length )
+    Array.copy(bytes, a.length, b, 0, b.length )  
+    Seq( new U(a), new U(b) )
+  }
+
+  /** Return new U with PKCS5 padding removed from end */
+  def unpad = {
+    val length = bytes.length
+    val padVal = bytes(length - 1)
+    assert( padVal <= length )
+    val buf = new Array[Byte]( length - padVal )
+    Array.copy( bytes, 0, buf, 0, buf.length )
+    new U(buf)
+  }
 
   /** Convert to ascii, replacing control characters with '°' */
   def ascii = {
@@ -71,32 +106,24 @@ case class U(bytes: Array[Byte]) {
     //"»"*(n/8 - s.length) + s
   }
 
-  /* * Convert to bytes always of size n/8 (unlike BigInt)  */
-  /*def bytes = {
-    val fromBigInt = bigInt.toByteArray 
-    val len = fromBigInt.length
-    if( len == n/8 )
-      fromBigInt
-    else{
-      val result = new Array[Byte](n/8)
-      if( len > n/8 ){
-	assert( len==1+n/8 )
-	Array.copy( fromBigInt, 1, result, 0, len-1 )
-      }else
-	Array.copy( fromBigInt, 0, result, n/8 - len, len )
-      result
-    }
-  }*/
-
-
+  /** splits into blocks od given size, with last one possibly shorter */
   def blocks(bitsPerBlock:Int):Seq[U] = {
     val bs = bytes
     val bytesPerBlock = bitsPerBlock/8; 
-    val n = bs.length/bytesPerBlock
-    (0 until n) map { (i:Int) =>
+    val fullBlockCount = bs.length/bytesPerBlock
+    val fullBlocks = (0 until fullBlockCount) map { (i:Int) =>
       val buf = new Array[Byte](bytesPerBlock)
       Array.copy( bs, i * bytesPerBlock, buf, 0, bytesPerBlock )
       new U(buf)		     
+    }
+    if( bitsPerBlock * fullBlockCount == n )
+      fullBlocks
+    else {
+      val partialBlockSize =  n -  bitsPerBlock * fullBlockCount
+      assert( partialBlockSize > 0 )
+      val buf = new Array[Byte](partialBlockSize/8)
+      Array.copy( bytes, n/8-buf.length, buf, 0, buf.length)
+      fullBlocks :+ new U(buf)
     }
   }
 
