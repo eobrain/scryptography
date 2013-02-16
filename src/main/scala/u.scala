@@ -12,7 +12,7 @@
  */
 
 package org.eamonn.crypto
-import java.security.SecureRandom
+import java.security.{SecureRandom, MessageDigest }
 import U._
 
 /** The set {0,1}^n which is useful in cryptography. Rather than use
@@ -28,12 +28,12 @@ case class U(bytes: Array[Byte]) {
   override def equals(other:Any):Boolean = other match {
     case that: U => {
       if( that.n != this.n )
-	false
+        false
       else {
-	for( i <- 0 until n/8 )
-	  if( this.bytes(i) != that.bytes(i) )
-	    return false
-	true
+        for( i <- 0 until n/8 )
+          if( this.bytes(i) != that.bytes(i) )
+            return false
+        true
       }
     }
     case _ => false
@@ -59,11 +59,11 @@ case class U(bytes: Array[Byte]) {
     else{
       val good = new Array[Byte](n/8)
       if (length < good.length)
-	//leading zeros
-	Array.copy(bs,0                 , good, good.length -length, length)
+        //leading zeros
+        Array.copy(bs,0                 , good, good.length -length, length)
       else
-	//overflow
-	Array.copy(bs,length-good.length, good, 0                  , length)
+        //overflow
+        Array.copy(bs,length-good.length, good, 0                  , length)
       new U(good)
     }
   }
@@ -106,6 +106,13 @@ case class U(bytes: Array[Byte]) {
     //"»"*(n/8 - s.length) + s
   }
 
+  /** SHA-256 hash of this data */
+  def sha256 = {
+    val md = MessageDigest.getInstance("SHA-256")
+    md update bytes
+    U(md.digest())
+  }
+
   /** splits into blocks od given size, with last one possibly shorter */
   def blocks(bitsPerBlock:Int):Seq[U] = {
     val bs = bytes
@@ -114,7 +121,7 @@ case class U(bytes: Array[Byte]) {
     val fullBlocks = (0 until fullBlockCount) map { (i:Int) =>
       val buf = new Array[Byte](bytesPerBlock)
       Array.copy( bs, i * bytesPerBlock, buf, 0, bytesPerBlock )
-      new U(buf)		     
+      new U(buf)                     
     }
     if( bitsPerBlock * fullBlockCount == n )
       fullBlocks

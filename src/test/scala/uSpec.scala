@@ -70,19 +70,34 @@ class USpec extends Specification {
       
     }
 
+ 
+    "XOR with all ones inverts" in {
+      val a =    U("00112233445566778899aabbccddeeff")
+      val b =    U("ffeeddccbbaa99887766554433221100")
+      val ones = U("ffffffffffffffffffffffffffffffff")
+
+      val aes00 = U("66e94bd4ef8a2c3b884cfa59ca342b2e")
+      println( a )
+      println( a ^ ones )
+      println( aes00 )
+      println( aes00 ^ ones )
+
+      (a ^ ones) === b
+    }
+
     "be splittable into blocks" in {
       val x = U("00010203040506070809")
       (x blocks 5*8) === Seq(
-	U("0001020304"),
-	U("0506070809"))
+        U("0001020304"),
+        U("0506070809"))
     }
 
     "be splittable into block with remainders" in {
       val x = U("00010203040506070809ffff")
       (x blocks 5*8) === Seq(
-	U("0001020304"),
-	U("0506070809"),
-	U("ffff"))
+        U("0001020304"),
+        U("0506070809"),
+        U("ffff"))
     }
 
     "be splittable at an arbitrary position" in {
@@ -94,10 +109,27 @@ class USpec extends Specification {
     
     "be creatable by concatenating a sequence" in {
       val seq = Seq(
-	U("0A0B0C"),
-	U("0E0F"),
-	U("101112131415"))
+        U("0A0B0C"),
+        U("0E0F"),
+        U("101112131415"))
       U(seq) === U("0A0B0C0E0F101112131415")
+    }
+
+  }
+
+  "sha256" should {
+
+    "be 256 bits long" in {
+      U.ascii("some data").sha256.n === 256
+    }
+
+    "never collide" in {
+      var hashes = Set[U]()
+      for( i <- 0 until 1000 ){
+        var hash = U.random(1000).sha256
+        hashes = hashes + hash
+      }
+      hashes.size === 1000  
     }
 
   }
@@ -108,7 +140,7 @@ class USpec extends Specification {
       U("00")     + 1 == U("01")
       U("222222") + 5 == U("222227")
       U("11111111222222223333333344444444555555556666666677777777") + 0x100 ===
-	U("11111111222222223333333344444444555555556666666677777877")
+        U("11111111222222223333333344444444555555556666666677777877")
     }
 
     "handles leading zeros" in {
@@ -120,7 +152,7 @@ class USpec extends Specification {
 
     "handles longs" in {
       U("222222222222222222222222222222") + 0x111111111111111L ===
-	U("222222222222222333333333333333")
+        U("222222222222222333333333333333")
     }
 
   }
@@ -132,12 +164,12 @@ class USpec extends Specification {
       val bytes = new Array[Byte](N/8)
       
       for (_ <- 0 until 100) yield {
-	rnd nextBytes bytes
-	
-	val x = U(bytes)
-	x.n            === N 
-	x.ascii.length === N/8
-	
+        rnd nextBytes bytes
+        
+        val x = U(bytes)
+        x.n            === N 
+        x.ascii.length === N/8
+        
       }
     }
     
@@ -186,9 +218,9 @@ class USpec extends Specification {
 
     "handle hex values beginning with zeros" in {
       val x = U(
-	"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f")
+        "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f")
       x.toString === 
-	"000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
+        "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f"
     }
   }
 
@@ -199,13 +231,13 @@ class USpec extends Specification {
       val bytes = new Array[Byte](N/8)
       
       for (_ <- 0 until 100) yield {
-	rnd nextBytes bytes
-	
-	val x = U(bytes)
-	x.n               === N 
-	x.bytes.length    === N/8
-	x.toString.length === N/4
-	
+        rnd nextBytes bytes
+        
+        val x = U(bytes)
+        x.n               === N 
+        x.bytes.length    === N/8
+        x.toString.length === N/4
+        
       }
     }
 
