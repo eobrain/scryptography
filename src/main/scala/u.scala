@@ -13,6 +13,7 @@
 
 package org.eamonn.crypto
 import java.security.{SecureRandom, MessageDigest }
+import java.io.{InputStream, BufferedInputStream}
 import U._
 
 /** The set {0,1}^n which is useful in cryptography. Rather than use
@@ -176,7 +177,34 @@ object U{
     new U(buf)
   }
 
-  //create random
+  /** Read stram into reversed list of blocks of bit-size n (with last one
+  ` read, first one in list, possibly shorter than n) */
+  def apply(ins:InputStream, n:Int) = {
+    var result = List[U]()
+    val in = new BufferedInputStream(ins)
+    try {
+      val buf = new Array[Byte](n/8)
+      var byteCount = -2
+
+      def readBlock = {
+        val byteCount=in.read(buf)
+        if( byteCount > 0 ){
+          val bytes = new Array[Byte](byteCount)
+          Array.copy(buf,0, bytes,0, byteCount)
+          result = new U(bytes) :: result
+          byteCount == n/8
+        }else
+          false
+      }
+
+      while( readBlock ){}
+    } finally {
+      in.close()
+    }
+    result
+  }
+
+  /*create random*/
   def random(n:Int) = {
     val result = new Array[Byte](n)
     gen nextBytes result

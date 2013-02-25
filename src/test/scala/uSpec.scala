@@ -16,6 +16,7 @@ import org.eamonn.crypto.U
 import scala.util.Random
 import USpec._
 import org.specs2.mutable.Specification
+import java.io.{ByteArrayInputStream, FileInputStream, File}
 
 /** Test the U class */
 class USpec extends Specification {
@@ -266,7 +267,33 @@ class USpec extends Specification {
       x.toString     === "ae2d8a571e03ac9c9eb76fac45af8e51"
     }
   }
-    
+
+  "stream reading" should {
+    "handle general case" in {
+      val in = new ByteArrayInputStream("Hello world!".getBytes)
+      val blocks:Seq[U] = U(in, 5*8)
+      val expected:Seq[U] = Seq( "d!", " worl", "Hello" ) map {U.ascii(_)}
+
+      blocks === expected
+    }
+    "handle the exact multiple case" in {
+      val in = new ByteArrayInputStream("Hello world!".getBytes)
+      val blocks:Seq[U] = U(in, 6*8)
+      val expected:Seq[U] = Seq( "world!", "Hello " ) map {U.ascii(_)}
+
+      blocks === expected
+    }
+
+    "can read this file" in {
+      val file = new File("src/test/scala/uSpec.scala")
+      val fileLen = file.length
+      val blocks = U(new FileInputStream(file),1024*8)
+      blocks.length      === (fileLen.toFloat/1024).ceil
+      blocks.head.n      === (fileLen % 1024)*8
+      blocks.tail.head.n === 1024*8
+
+    }
+  }
   
 }
 
