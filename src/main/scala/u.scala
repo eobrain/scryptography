@@ -51,6 +51,53 @@ case class U(bytes: Array[Byte]) {
     new U(bs)
   }
 
+  /** return this value with its i'th byte XORed with g */ 
+  def xorAt(i:Int, g:Byte) = {
+    //println("xorAt("+i+","+g+")")
+    //println(this.toString)
+    require( i>=0 && i < n/8 ) 
+    val result = copyWith(i, (this(i).asInstanceOf[Int] ^ g).asInstanceOf[Byte] )
+    //println(result.toString)
+    result
+  }
+
+  /** Return sub-range */
+  def apply(range:Range) = {
+    require( range.start>=0 && range.start <  n/8 ) 
+    require( range.end  > 0 && range.end   <= n/8 ) 
+    var count = 0
+    for(i <- range )
+      count += 1
+    val bs = new Array[Byte](count)
+    count = 0
+    for(i <- range ){
+      bs(count) = bytes(i)
+      count += 1
+    }
+    new U(bs)
+  }
+
+  /** Return i'th byte */
+  def apply(i:Int) = {
+    require( i>=0 && i < n/8 ) 
+    bytes(i)
+  }
+
+  /** Return value the same as this but with it's i'th byte set to g */
+  def copyWith(i:Int, g:Byte) = {
+    //println("copyWith("+i+","+g+")")
+    val len = n/8;
+    require( i>=0 && i < len ) 
+    //if( g == bytes(i) )
+    //  this
+    //else {
+      val copy = new Array[Byte](len)
+      Array.copy(bytes,0,copy,0,len)
+      copy(i) = g
+      new U(copy)
+    //}
+  }
+
   /** addition */
   def +(that:Long) = {
     val bs = (BigInt(bytes) + BigInt(that)).toByteArray
@@ -75,6 +122,14 @@ case class U(bytes: Array[Byte]) {
     Array.copy( this.bytes, 0, buf, 0,                 this.bytes.length )
     Array.copy( that.bytes, 0, buf, this.bytes.length, that.bytes.length )
     U(buf)
+  }
+
+  /** replicate */
+  def * (n:Int) = {
+    val buf = new Array[Byte](n * bytes.length )
+    for( i <- 0 until n)
+      Array.copy( bytes, 0, buf, i*bytes.length, bytes.length)
+    new U(buf) 
   }
 
   /** Partition into two at given bit position */

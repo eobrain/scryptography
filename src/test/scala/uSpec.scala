@@ -294,6 +294,46 @@ class USpec extends Specification {
 
     }
   }
+
+  "byte twiddling" should {
+    "can get a byte" in {
+      val x = U("00112233445566")
+      x(3) === 0x33
+    }
+    "can set a byte" in {
+      val x = U("7777777777")
+      x.copyWith(2, 0xAB.asInstanceOf[Byte]) === U("7777AB7777")
+    }
+    "can xor a byte" in {
+      val x = U("7777777777")
+      x.xorAt(2, 0xEC.asInstanceOf[Byte]) === U("77779B7777")
+    }
+  }
+
+  "concatenation" should {
+    "work" in {
+      U("abcd")*3 === U("abcdabcdabcd")
+    }
+  } 
+
+  "range" should {
+    "support until" in {
+      U("001122334455667788")(2 until 5) === U("223344")
+    } 
+    "support to" in {
+      U("001122334455667788")(2 to    5) === U("22334455")
+    } 
+    "support step" in {
+      U("001122334455667788")(1 until 7 by 2) === U("113355")
+    } 
+
+    "support backwards" in {
+      U("001122334455667788")(5 to 2 by -1) === U("55443322")
+    }
+    "support backwards step" in {
+      U("001122334455667788")(8 to 2 by -2) === U("88664422")
+    }
+ }
   
 }
 
