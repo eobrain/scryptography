@@ -111,6 +111,14 @@ case class Z(n:BigInt) {
       }
     }
 
+    def apply(x:BigInt) = {
+      val xx = new Member(x)
+      xx.inverse match {
+        case Some(i) => Some(new Invertible(xx))
+        case None => None
+      }
+    }
+
     def random:Member = {
       while(true){
         Z.this.random.inverse match {
@@ -177,7 +185,7 @@ object Z{
 
 
 /** the case where n is a prime number p */
-case class ZP private(p:BigInt) extends Z(p){
+case class ZP(p:BigInt) extends Z(p){
 
   require( p > 2 )
   require( p isProbablePrime 64 )
@@ -222,7 +230,8 @@ case class ZP private(p:BigInt) extends Z(p){
 }
 
 object ZP {
-  def apply(p:Int) = new ZP(BigInt(p))
+  //def apply(p:BigInt) = new ZP(p)
+  def apply(p:Int)    = new ZP(BigInt(p))
 
   /** Random (probable) prime of this bitlength */
   def random(bitLength:Int) = new ZP(new BigInt(BigInteger.probablePrime(bitLength,rnd)))
