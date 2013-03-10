@@ -199,12 +199,15 @@ case class U(bytes: Array[Byte]) {
 object U{
 
   def hex2bytes(hex: String) = {
-    require( hex.length % 2 == 0, "hex must have even number of chars" )
-    val length = hex.length/2
+    val evenHex = if(hex.length % 2 == 0)
+      hex
+    else
+      "0"+hex
+    val length = evenHex.length/2
     val bytes = new Array[Byte](length)
     for( i <- 0 until length ){
-      val byteHex = hex.substring( 2*i, 2*(i+1 ))
-      assert( byteHex.length==2, "length should be 2 for i="+i+" in "+hex)
+      val byteHex = evenHex.substring( 2*i, 2*(i+1 ))
+      assert( byteHex.length==2, "length should be 2 for i="+i+" in "+evenHex)
       bytes(i) = Integer.parseInt( byteHex, 16 ).asInstanceOf[Byte]
     }
     bytes
